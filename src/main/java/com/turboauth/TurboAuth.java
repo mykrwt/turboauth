@@ -16,7 +16,7 @@ public final class TurboAuth extends JavaPlugin {
     @Override
     public void onEnable() {
         this.configManager = new ConfigManager(this);
-        this.configManager.loadConfig();
+        this.configManager.initConfig();
 
         this.storageManager = new StorageManager(this);
         this.storageManager.initStorage();
