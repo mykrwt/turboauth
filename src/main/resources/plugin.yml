@@ -1,0 +1,69 @@
+name: TurboAuth
+version: 1.0.0
+author: TurboAuth Team
+website: https://github.com/turboauth/turboauth
+api-version: 1.20
+main: com.turboauth.TurboAuth
+description: A lightweight, visually polished authentication plugin for offline/cracked servers
+
+# Supported platforms
+depend: []
+softdepend: []
+
+# Commands
+commands:
+  turboauth:
+    description: TurboAuth admin commands
+    permission: turboauth.admin
+    permission-message: '&c&l✗ &7You don''t have permission to use this command!'
+    usage: /turboauth <reload|setspawn|setfallback|info|help>
+    aliases: [ta]
+    permission: turboauth.admin
+    permission-default: op
+
+  login:
+    description: Login to the server
+    permission: turboauth.login
+    permission-message: '&c&l✗ &7You don''t have permission to use this command!'
+    usage: /login <password>
+    aliases: [l]
+    permission: turboauth.login
+    permission-default: true
+
+  register:
+    description: Register a new account
+    permission: turboauth.register
+    permission-message: '&c&l✗ &7You don''t have permission to use this command!'
+    usage: /register <password> <password>
+    aliases: [reg]
+    permission: turboauth.register
+    permission-default: true
+
+# Permissions
+permissions:
+  turboauth.*:
+    description: Gives access to all TurboAuth commands and features
+    children:
+      turboauth.admin: true
+      turboauth.reload: true
+      turboauth.login: true
+      turboauth.register: true
+    permission-default: op
+
+  turboauth.admin:
+    description: Gives access to all TurboAuth admin commands
+    children:
+      turboauth.reload: true
+    permission-default: op
+
+  turboauth.reload:
+    description: Allows reloading TurboAuth configuration
+    permission-default: op
+
+  turboauth.login:
+    description: Allows login to the server
+    permission-default: true
+
+  turboauth.register:
+    description: Allows registration on the server
+    permission-default: true
