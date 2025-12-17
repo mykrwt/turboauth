@@ -7,69 +7,71 @@ import com.turboauth.events.PlayerEvents;
 import com.turboauth.storage.StorageManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class TurboAuth extends JavaPlugin {
-    
-    private static TurboAuth instance;
+public final class TurboAuth extends JavaPlugin {
+
     private ConfigManager configManager;
     private StorageManager storageManager;
     private AuthManager authManager;
-    
+
     @Override
     public void onEnable() {
-        instance = this;
-        
-        // Initialize managers
-        this.configManager = new ConfigManager();
-        this.storageManager = new StorageManager();
-        this.authManager = new AuthManager();
-        
-        // Load configuration and data
-        configManager.loadConfig();
-        storageManager.loadData();
-        
-        // Register commands
+        this.configManager = new ConfigManager(this);
+        this.configManager.loadConfig();
+
+        this.storageManager = new StorageManager(this);
+        this.storageManager.initStorage();
+        this.storageManager.loadData();
+
+        this.authManager = new AuthManager(this, configManager, storageManager);
+
         registerCommands();
-        
-        // Register events
         registerEvents();
-        
+
         getLogger().info("TurboAuth v" + getDescription().getVersion() + " enabled successfully!");
     }
-    
+
     @Override
     public void onDisable() {
-        // Save all data on shutdown
+        if (authManager != null) {
+            authManager.stopAllTasks();
+        }
+
         if (storageManager != null) {
             storageManager.saveAllData();
         }
-        
+
         getLogger().info("TurboAuth disabled.");
     }
-    
+
     private void registerCommands() {
-        TurboAuthCommand command = new TurboAuthCommand();
-        getCommand("turboauth").setExecutor(command);
-        getCommand("turboauth").setTabCompleter(command);
-        getCommand("login").setExecutor(command);
-        getCommand("register").setExecutor(command);
+        TurboAuthCommand command = new TurboAuthCommand(this, authManager, configManager, storageManager);
+
+        if (getCommand("turboauth") != null) {
+            getCommand("turboauth").setExecutor(command);
+            getCommand("turboauth").setTabCompleter(command);
+        }
+
+        if (getCommand("login") != null) {
+            getCommand("login").setExecutor(command);
+        }
+
+        if (getCommand("register") != null) {
+            getCommand("register").setExecutor(command);
+        }
     }
-    
+
     private void registerEvents() {
-        getServer().getPluginManager().registerEvents(new PlayerEvents(), this);
+        getServer().getPluginManager().registerEvents(new PlayerEvents(this, authManager, configManager, storageManager), this);
     }
-    
-    public static TurboAuth getInstance() {
-        return instance;
-    }
-    
+
     public ConfigManager getConfigManager() {
         return configManager;
     }
-    
+
     public StorageManager getStorageManager() {
         return storageManager;
     }
-    
+
     public AuthManager getAuthManager() {
         return authManager;
     }
