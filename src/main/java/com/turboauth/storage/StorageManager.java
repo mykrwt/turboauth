@@ -10,37 +10,48 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class StorageManager {
-    
+
     private final TurboAuth plugin;
-    private final File dataFolder;
+    private File dataFolder;
     private final Map<UUID, PlayerData> playerDataMap;
     private final Map<UUID, Location> savedLocations;
-    
+
+    public StorageManager(TurboAuth plugin) {
+        this.plugin = plugin;
+        this.playerDataMap = new HashMap<>();
+        this.savedLocations = new HashMap<>();
+    }
+
+    public void initStorage() {
+        if (dataFolder != null) {
+            return;
+        }
+
+        this.dataFolder = new File(plugin.getDataFolder(), "data");
+        if (!dataFolder.exists() && !dataFolder.mkdirs()) {
+            plugin.getLogger().warning("Could not create data folder: " + dataFolder.getAbsolutePath());
+        }
+    }
+
     public Map<UUID, PlayerData> getPlayerDataMap() {
         return playerDataMap;
     }
-    
+
     public Map<UUID, Location> getSavedLocationMap() {
         return savedLocations;
     }
-    
-    public StorageManager() {
-        this.plugin = TurboAuth.getInstance();
-        this.dataFolder = new File(plugin.getDataFolder(), "data");
-        this.playerDataMap = new HashMap<>();
-        this.savedLocations = new HashMap<>();
-        
-        // Ensure data folder exists
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs();
-        }
-    }
-    
+
     public void loadData() {
-        // Load player data files
+        initStorage();
+
+        playerDataMap.clear();
+        savedLocations.clear();
+
         File[] playerFiles = dataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
         if (playerFiles != null) {
             for (File file : playerFiles) {
@@ -56,19 +67,18 @@ public class StorageManager {
                 }
             }
         }
-        
-        // Load saved locations
+
         loadSavedLocations();
-        
+
         plugin.getLogger().info("Loaded data for " + playerDataMap.size() + " players");
     }
-    
+
     private PlayerData loadPlayerData(UUID uuid) {
         File file = new File(dataFolder, uuid + ".yml");
         if (!file.exists()) {
             return null;
         }
-        
+
         try {
             FileConfiguration config = YamlConfiguration.loadConfiguration(file);
             PlayerData data = new PlayerData();
@@ -84,43 +94,50 @@ public class StorageManager {
             return null;
         }
     }
-    
+
     private void loadSavedLocations() {
         File locationsFile = new File(plugin.getDataFolder(), "saved-locations.yml");
-        if (locationsFile.exists()) {
-            try {
-                FileConfiguration config = YamlConfiguration.loadConfiguration(locationsFile);
-                for (String uuidStr : config.getKeys(false)) {
-                    try {
-                        UUID uuid = UUID.fromString(uuidStr);
-                        String worldName = config.getString(uuidStr + ".world");
-                        if (worldName != null) {
-                            Location location = new Location(
-                                plugin.getServer().getWorld(worldName),
-                                config.getDouble(uuidStr + ".x"),
-                                config.getDouble(uuidStr + ".y"),
-                                config.getDouble(uuidStr + ".z"),
-                                (float) config.getDouble(uuidStr + ".yaw"),
-                                (float) config.getDouble(uuidStr + ".pitch")
-                            );
-                            savedLocations.put(uuid, location);
-                        }
-                    } catch (Exception e) {
-                        plugin.getLogger().warning("Error loading saved location for UUID: " + uuidStr);
+        if (!locationsFile.exists()) {
+            return;
+        }
+
+        try {
+            FileConfiguration config = YamlConfiguration.loadConfiguration(locationsFile);
+            for (String uuidStr : config.getKeys(false)) {
+                try {
+                    UUID uuid = UUID.fromString(uuidStr);
+                    String worldName = config.getString(uuidStr + ".world");
+                    if (worldName == null) {
+                        continue;
                     }
+
+                    Location location = new Location(
+                        plugin.getServer().getWorld(worldName),
+                        config.getDouble(uuidStr + ".x"),
+                        config.getDouble(uuidStr + ".y"),
+                        config.getDouble(uuidStr + ".z"),
+                        (float) config.getDouble(uuidStr + ".yaw"),
+                        (float) config.getDouble(uuidStr + ".pitch")
+                    );
+
+                    savedLocations.put(uuid, location);
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Error loading saved location for UUID: " + uuidStr);
                 }
-            } catch (Exception e) {
-                plugin.getLogger().severe("Error loading saved locations: " + e.getMessage());
             }
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error loading saved locations: " + e.getMessage());
         }
     }
-    
+
     public void savePlayerData(UUID uuid) {
         PlayerData data = playerDataMap.get(uuid);
-        if (data == null) return;
-        
+        if (data == null) {
+            return;
+        }
+
         File file = new File(dataFolder, uuid + ".yml");
-        
+
         try {
             FileConfiguration config = new YamlConfiguration();
             config.set("username", data.getUsername());
@@ -128,27 +145,35 @@ public class StorageManager {
             config.set("registration-date", data.getRegistrationDate());
             config.set("last-login-date", data.getLastLoginDate());
             config.set("last-ip", data.getLastKnownIP());
-            
+
             config.save(file);
         } catch (IOException e) {
             plugin.getLogger().severe("Error saving player data for " + uuid + ": " + e.getMessage());
         }
     }
-    
+
     public void saveAllData() {
+        if (dataFolder == null) {
+            return;
+        }
+
         for (UUID uuid : playerDataMap.keySet()) {
             savePlayerData(uuid);
         }
         saveSavedLocations();
     }
-    
+
     private void saveSavedLocations() {
         File locationsFile = new File(plugin.getDataFolder(), "saved-locations.yml");
-        
+
         try {
             FileConfiguration config = new YamlConfiguration();
             for (Map.Entry<UUID, Location> entry : savedLocations.entrySet()) {
                 Location location = entry.getValue();
+                if (location == null || location.getWorld() == null) {
+                    continue;
+                }
+
                 String uuidStr = entry.getKey().toString();
                 config.set(uuidStr + ".world", location.getWorld().getName());
                 config.set(uuidStr + ".x", location.getX());
@@ -162,96 +187,127 @@ public class StorageManager {
             plugin.getLogger().severe("Error saving saved locations: " + e.getMessage());
         }
     }
-    
+
     public void savePlayerLocation(Player player) {
         savedLocations.put(player.getUniqueId(), player.getLocation());
         saveSavedLocations();
     }
-    
+
     public void removeSavedLocation(UUID uuid) {
         savedLocations.remove(uuid);
         saveSavedLocations();
     }
-    
+
     public Location getSavedLocation(UUID uuid) {
         return savedLocations.get(uuid);
     }
-    
+
     public PlayerData getPlayerData(UUID uuid) {
         return playerDataMap.get(uuid);
     }
-    
+
     public PlayerData getPlayerData(String username) {
         return playerDataMap.values().stream()
             .filter(data -> data.getUsername().equalsIgnoreCase(username))
             .findFirst()
             .orElse(null);
     }
-    
+
     public void createPlayerData(Player player, String password) {
         PlayerData data = new PlayerData();
         data.setUuid(player.getUniqueId());
         data.setUsername(player.getName());
-        data.setPassword(password); // Plain text as required
+        data.setPassword(password);
         data.setRegistrationDate(getCurrentDateTime());
         data.setLastLoginDate(getCurrentDateTime());
-        data.setLastKnownIP(player.getAddress().getHostString());
-        
+        data.setLastKnownIP(player.getAddress() != null ? player.getAddress().getHostString() : null);
+
         playerDataMap.put(player.getUniqueId(), data);
         savePlayerData(player.getUniqueId());
     }
-    
+
     public void updatePlayerLogin(UUID uuid, Player player) {
         PlayerData data = playerDataMap.get(uuid);
-        if (data != null) {
-            data.setLastLoginDate(getCurrentDateTime());
-            data.setLastKnownIP(player.getAddress().getHostString());
-            savePlayerData(uuid);
+        if (data == null) {
+            return;
         }
+
+        data.setLastLoginDate(getCurrentDateTime());
+        data.setLastKnownIP(player.getAddress() != null ? player.getAddress().getHostString() : null);
+        savePlayerData(uuid);
     }
-    
+
     public boolean playerExists(UUID uuid) {
         return playerDataMap.containsKey(uuid);
     }
-    
+
     public boolean playerExists(String username) {
         return playerDataMap.values().stream()
             .anyMatch(data -> data.getUsername().equalsIgnoreCase(username));
     }
-    
+
     public int playerDataSize() {
         return playerDataMap.size();
     }
-    
+
     private String getCurrentDateTime() {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
-    
+
     public static class PlayerData {
         private UUID uuid;
         private String username;
-        private String password; // Plain text as required
+        private String password;
         private String registrationDate;
         private String lastLoginDate;
         private String lastKnownIP;
-        
-        // Getters and setters
-        public UUID getUuid() { return uuid; }
-        public void setUuid(UUID uuid) { this.uuid = uuid; }
-        
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-        
-        public String getRegistrationDate() { return registrationDate; }
-        public void setRegistrationDate(String registrationDate) { this.registrationDate = registrationDate; }
-        
-        public String getLastLoginDate() { return lastLoginDate; }
-        public void setLastLoginDate(String lastLoginDate) { this.lastLoginDate = lastLoginDate; }
-        
-        public String getLastKnownIP() { return lastKnownIP; }
-        public void setLastKnownIP(String lastKnownIP) { this.lastKnownIP = lastKnownIP; }
+
+        public UUID getUuid() {
+            return uuid;
+        }
+
+        public void setUuid(UUID uuid) {
+            this.uuid = uuid;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getRegistrationDate() {
+            return registrationDate;
+        }
+
+        public void setRegistrationDate(String registrationDate) {
+            this.registrationDate = registrationDate;
+        }
+
+        public String getLastLoginDate() {
+            return lastLoginDate;
+        }
+
+        public void setLastLoginDate(String lastLoginDate) {
+            this.lastLoginDate = lastLoginDate;
+        }
+
+        public String getLastKnownIP() {
+            return lastKnownIP;
+        }
+
+        public void setLastKnownIP(String lastKnownIP) {
+            this.lastKnownIP = lastKnownIP;
+        }
     }
 }
