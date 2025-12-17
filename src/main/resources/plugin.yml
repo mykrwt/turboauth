@@ -1,5 +1,5 @@
 name: TurboAuth
-version: 1.0.0
+version: 0.2.0
 author: TurboAuth Team
 website: https://github.com/turboauth/turboauth
 main: com.turboauth.TurboAuth

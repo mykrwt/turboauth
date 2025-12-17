@@ -6,7 +6,7 @@
 
     <groupId>com.turboauth</groupId>
     <artifactId>turboauth</artifactId>
-    <version>1.0.0</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
 
     <name>TurboAuth</name>
