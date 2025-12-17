@@ -3,6 +3,7 @@
 # Maven
 target/
 *.jar
+!plugin-jar/*.jar
 *.war
 *.ear
 
