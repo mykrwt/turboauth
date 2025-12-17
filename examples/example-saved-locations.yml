@@ -1,0 +1,18 @@
+# Example Saved Locations File
+# This file demonstrates how TurboAuth stores player locations before authentication
+
+a1b2c3d4-e5f6-7890-abcd-ef1234567890:
+  world: "world"
+  x: 125.5
+  y: 64.0
+  z: -45.2
+  yaw: 90.0
+  pitch: 0.0
+
+b2c3d4e5-f6g7-8901-bcde-f23456789012:
+  world: "world_nether"
+  x: -200.0
+  y: 65.0
+  z: 180.5
+  yaw: -45.0
+  pitch: 15.0

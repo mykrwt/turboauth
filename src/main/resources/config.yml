@@ -1,0 +1,149 @@
+# ====================================================================
+# TurboAuth Configuration File
+# Version: 1.0.0
+# Description: Lightweight, visually polished authentication plugin
+# ====================================================================
+
+# Authentication spawn location where players will be teleported
+# to authenticate before they can play normally
+auth-spawn:
+  world: "world"           # World name where auth spawn is located
+  x: 0.0                   # X coordinate
+  y: 64.0                  # Y coordinate (ground level)
+  z: 0.0                   # Z coordinate
+  yaw: 0.0                 # Player facing direction (0 = south)
+  pitch: 0.0               # Player looking up/down angle
+
+# Fallback spawn location used when original player location
+# cannot be restored (e.g., world doesn't exist, unsafe location)
+fallback-spawn:
+  world: "world"           # World name where fallback spawn is located
+  x: 0.0                   # X coordinate
+  y: 64.0                  # Y coordinate
+  z: 0.0                   # Z coordinate
+  yaw: 0.0                 # Player facing direction
+  pitch: 0.0               # Player looking angle
+
+# Customizable messages with color support (& for color codes)
+# Use & for color codes (e.g., &a = green, &c = red, &e = yellow)
+# MiniMessage format supported for advanced formatting
+messages:
+  # Welcome messages shown when player joins
+  join-not-registered: "&7&l⟶ &eWelcome to the server! &7Please &bregister &7with &e/register <password> <password>"
+  join-registered: "&7&l⟶ &eWelcome back! &7Please &blogin &7with &e/login <password>"
+  
+  # Success messages
+  register-success: "&a&l✓ &7Successfully registered! &eWelcome to the server!"
+  login-success: "&a&l✓ &7Successfully logged in! &eEnjoy your stay!"
+  
+  # Error messages for registration
+  register-fail-already: "&c&l✗ &7You are already registered!"
+  register-fail-mismatch: "&c&l✗ &7Passwords do not match!"
+  
+  # Error messages for login
+  login-fail-wrong: "&c&l✗ &7Wrong password! &7(&e{attempts}&7/&e{max}&7)"
+  login-fail-not-registered: "&c&l✗ &7You are not registered! &7Use &e/register <password> <password>"
+  
+  # Brute force protection
+  kick-brute-force: "&c&l⚡ Protected by TurboAuth\n&7Reason: &eToo many failed login attempts"
+  
+  # Reminder message shown periodically
+  reminder: "&7&l⟶ &ePlease authenticate with &e/login <password>"
+
+# Plugin behavior settings
+settings:
+  # Maximum number of failed login attempts before kicking player
+  max-login-attempts: 5
+  
+  # Cooldown in seconds between failed login attempts
+  attempt-cooldown: 10
+  
+  # Time in seconds between reminder messages
+  reminder-interval: 30
+  
+  # Auto-login registered players if true, otherwise they must manually login
+  auto-login: false
+  
+  # Apply DARKNESS effect to unauthenticated players (blocks their view)
+  enable-darkness: true
+  
+  # Freeze unauthenticated players (prevents movement)
+  enable-freeze: true
+  
+  # Temporary IP ban on brute force detection (advanced feature)
+  ip-bans: false
+  
+  # Duration for IP bans in seconds (3600 = 1 hour)
+  ip-ban-duration: 3600
+
+# Visual animations and titles
+animations:
+  join:
+    # Title shown when player joins (leave empty to disable)
+    title: "&e&lWelcome"
+    
+    # Subtitle shown below the title
+    subtitle: "&7Please authenticate"
+    
+    # Animation timing (in ticks, 20 ticks = 1 second)
+    fade-in: 10      # Time to fade in title (ticks)
+    stay: 60         # Time to keep title visible (ticks)
+    fade-out: 10     # Time to fade out title (ticks)
+  
+  success:
+    # Title shown on successful authentication
+    title: "&a&lSuccess"
+    subtitle: "&7Authenticated!"
+    fade-in: 5
+    stay: 40
+    fade-out: 5
+
+# Sound effects for various events
+# Use Minecraft sound names (e.g., BLOCK_ANVIL_LAND, ENTITY_PLAYER_LEVELUP)
+sounds:
+  # Sound played when player joins
+  join: "BLOCK_ANVIL_LAND"
+  
+  # Sound played on successful registration
+  register-success: "ENTITY_PLAYER_LEVELUP"
+  
+  # Sound played on successful login
+  login-success: "ENTITY_EXPERIENCE_ORB_PICKUP"
+  
+  # Sound played on failed login
+  login-fail: "ENTITY_VILLAGER_NO"
+  
+  # Enable or disable all sounds
+  enabled: true
+
+# Color scheme for consistent theming
+colors:
+  primary: "&e"      # Main accent color (yellow)
+  secondary: "&7"    # Secondary color (gray)
+  success: "&a"      # Success color (green)
+  error: "&c"        # Error color (red)
+  accent: "&b"       # Accent color (aqua)
+
+# ====================================================================
+# Usage Instructions:
+# ====================================================================
+# 1. Configure auth-spawn to a safe location where players will
+#    authenticate (recommended: separate authentication world)
+#
+# 2. Configure fallback-spawn for post-authentication teleport
+#    (recommended: server spawn or safe location)
+#
+# 3. Customize messages to match your server theme
+#
+# 4. Adjust security settings based on your needs
+#
+# 5. Enable/disable animations and sounds as desired
+#
+# 6. Use /turboauth setspawn and /turboauth setfallback
+#    to easily configure spawn locations in-game
+#
+# 7. Restart server or use /turboauth reload after changes
+#
+# For advanced users: Supports MiniMessage format for rich text
+# Examples: <bold>, <italic>, <rainbow>, <gradient:#FF0000:#00FF00>
+# ====================================================================

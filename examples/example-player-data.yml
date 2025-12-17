@@ -1,0 +1,8 @@
+# Example Player Data File
+# This file demonstrates how TurboAuth stores player information
+
+username: "Player123"
+password: "mypassword123"  # Plain text as required by specifications
+registration-date: "2024-12-15 14:30:22"
+last-login-date: "2024-12-17 10:15:30"
+last-ip: "192.168.1.100"
