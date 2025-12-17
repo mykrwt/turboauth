@@ -34,7 +34,7 @@ public class ConfigManager {
         this.plugin = plugin;
     }
 
-    public void loadConfig() {
+    public void initConfig() {
         if (configFile == null) {
             configFile = new File(plugin.getDataFolder(), "config.yml");
         }
@@ -47,6 +47,10 @@ public class ConfigManager {
 
         // Set default values if not present
         setDefaults();
+    }
+
+    public void loadConfig() {
+        initConfig();
     }
 
     private void setDefaults() {

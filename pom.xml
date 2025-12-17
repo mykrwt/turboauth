@@ -35,6 +35,7 @@
 
     <build>
         <defaultGoal>clean package</defaultGoal>
+        <finalName>TurboAuth-v02</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
